@@ -1,0 +1,621 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Anastasiia Grigoreva | Playable Ads Creator | Portfolio</title>
+    <style>
+        :root {
+            /* Каноничные цвета темы VS Code Dark+ */
+            --bg-color: #1e1e1e;          /* Главный фон редактора */
+            --sidebar-bg: #252526;      /* Фон карточек и панелей */
+            --nav-bg: #3c3c3c;          /* Верхняя панель меню */
+            --text-color: #d4d4d4;      /* Стандартный текст кода */
+            --text-muted: #6a9955;      /* Зеленый цвет для комментариев */
+            
+            /* Цвета подсветки синтаксиса (Token Colors) */
+            --vs-keyword: #569cd6;      /* Синий (инструкции, типы) */
+            --vs-string: #ce9178;       /* Оранжево-розовый (строки) */
+            --vs-function: #dcdcaa;     /* Желтый (функции и классы) */
+            --vs-number: #b5cea8;       /* Светло-зеленый (числа) */
+            --vs-border: #303030;       /* Границы панелей */
+            --vs-active-green: #4ec9b0; /* Подсветка активных элементов, типов */
+            --vs-hover-green: #3cae96;  
+        }
+
+        html {
+            scroll-behavior: smooth;
+        }
+
+        body {
+            font-family: 'Consolas', 'Monaco', 'Courier New', monospace;
+            background-color: var(--bg-color);
+            color: var(--text-color);
+            margin: 0;
+            padding: 80px 20px 40px 20px;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            box-sizing: border-box;
+            overflow-x: hidden; 
+        }
+
+        /* Верхнее фиксированное меню */
+        .navbar {
+            position: fixed;
+            top: 0;
+            left: 0;
+            right: 0;
+            height: 45px;
+            background-color: var(--nav-bg);
+            border-bottom: 1px solid var(--vs-border);
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            z-index: 1000;
+            box-shadow: 0 4px 10px rgba(0,0,0,0.3);
+        }
+
+        .nav-links {
+            display: flex;
+            gap: 30px;
+            justify-content: center;
+            padding: 0 10px;
+        }
+
+        .nav-link {
+            color: #969696;
+            text-decoration: none;
+            font-weight: 500;
+            font-size: 0.9rem;
+            transition: color 0.1s;
+            display: flex;
+            align-items: center;
+            gap: 5px;
+            white-space: nowrap;
+        }
+
+        .nav-link::before {
+            content: '📄';
+            font-size: 0.8rem;
+        }
+
+        .nav-link:hover {
+            color: #ffffff;
+            background-color: #2d2d2d;
+            padding: 4px 8px;
+            border-radius: 4px;
+            margin: -4px -8px;
+        }
+
+        .container {
+            max-width: 1000px;
+            width: 100%;
+            box-sizing: border-box;
+        }
+
+        header {
+            text-align: left;
+            margin-bottom: 40px;
+            border-left: 3px solid var(--vs-keyword);
+            padding-left: 20px;
+        }
+
+        header h1 { 
+            margin: 0 0 15px 0; 
+            font-size: 1.8rem; 
+            color: var(--vs-function); 
+            line-height: 1.3;
+        }
+
+        header p.description { 
+            color: var(--text-color); 
+            font-size: 0.95rem; 
+            line-height: 1.6; 
+            margin: 0;
+            max-width: 900px;
+        }
+        
+        /* Стили разметки кода */
+        .keyword { color: var(--vs-keyword); font-weight: bold; }
+        .string { color: var(--vs-string); }
+        .comment { color: var(--text-muted); word-break: break-word; }
+
+        /* Сетка портфолио */
+        .portfolio-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(220px, 1fr));
+            gap: 25px;
+            margin-top: 20px;
+            justify-content: center; 
+        }
+
+        .project-card {
+            background-color: var(--sidebar-bg);
+            border-radius: 6px;
+            padding: 20px;
+            display: flex;
+            flex-direction: column;
+            justify-content: space-between;
+            border: 1px solid var(--vs-border);
+            transition: transform 0.2s, border-color 0.2s, box-shadow 0.2s;
+            cursor: pointer;
+            user-select: none;
+            box-sizing: border-box;
+        }
+
+        .project-card:hover {
+            border-color: var(--vs-active-green);
+            transform: translateY(-2px);
+            box-shadow: 0 4px 15px rgba(78, 201, 176, 0.15);
+        }
+
+        .project-card h3 { 
+            margin: 0 0 15px 0; 
+            font-size: 1.05rem; 
+            text-align: center;
+            color: var(--vs-function); 
+        }
+
+        /* Окно предпросмотра (Viewer) */
+        .viewer-container {
+            display: none;
+            flex-direction: column;
+            align-items: center;
+            margin-top: 50px;
+            margin-bottom: 50px;
+            background: var(--sidebar-bg);
+            padding: 20px;
+            border-radius: 8px;
+            border: 1px solid var(--vs-border);
+            width: 100%;
+            box-sizing: border-box;
+        }
+
+        .viewer-container h2 {
+            color: var(--vs-function);
+            font-size: 1.2rem;
+            margin-top: 0;
+            margin-bottom: 20px;
+            text-align: center;
+        }
+
+        .viewer-controls-wrapper {
+            display: flex;
+            flex-direction: column;
+            gap: 12px;
+            margin-bottom: 25px;
+            align-items: center;
+            width: 100%;
+        }
+
+        .viewer-controls {
+            display: flex;
+            gap: 10px;
+            flex-wrap: wrap;
+            justify-content: center;
+        }
+
+        .control-btn {
+            background: #2d2d2d;
+            color: #cccccc;
+            border: 1px solid var(--vs-border);
+            padding: 6px 14px;
+            border-radius: 4px;
+            cursor: pointer;
+            font-family: inherit;
+            font-size: 0.85rem;
+            transition: all 0.15s;
+            display: inline-flex;
+            align-items: center;
+            gap: 6px;
+        }
+
+        .control-btn.active { 
+            background: var(--vs-active-green); 
+            color: #1e1e1e; 
+            border-color: var(--vs-hover-green);
+            font-weight: bold;
+        }
+        .control-btn:hover:not(.active) {
+            background: #3c3c3c;
+            color: #ffffff;
+        }
+
+        .action-btn {
+            background: #3a3d41;
+            color: #ffffff;
+            border: 1px solid #555555;
+        }
+        .action-btn:hover {
+            background: #4b4e54;
+            border-color: var(--vs-active-green);
+        }
+        .close-btn:hover {
+            border-color: #f14c4c;
+            color: #f14c4c;
+        }
+
+        .viewer-window {
+            width: 100%;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            padding: 10px 0;
+            overflow: hidden;
+        }
+
+        /* Обёртка iframe со строгими соотношениями сторон */
+        .iframe-wrapper {
+            background: #000;
+            border-radius: 6px;
+            overflow: hidden;
+            box-shadow: 0 20px 40px rgba(0,0,0,0.6);
+            border: 4px solid #333333;
+            transition: all 0.3s ease-in-out;
+            max-width: 100%; 
+        }
+
+        .ratio-9-16 { width: 300px; aspect-ratio: 9 / 16; }   
+        .ratio-16-9 { width: 560px; aspect-ratio: 16 / 9; }   
+        .ratio-3-4  { width: 340px; aspect-ratio: 3 / 4; }     
+        .ratio-4-3  { width: 450px; aspect-ratio: 4 / 3; }     
+
+        iframe {
+            width: 100%;
+            height: 100%;
+            border: none;
+            display: block;
+        }
+
+        .console-output {
+            color: var(--text-color);
+            font-size: 0.85rem;
+            line-height: 1.6;
+            margin: 25px auto 0 auto;
+            text-align: left;
+            max-width: 560px;
+            width: 100%;
+            white-space: pre-line;
+            background: #1e1e1e;
+            padding: 15px;
+            border-radius: 6px;
+            border: 1px solid var(--vs-border);
+            box-sizing: border-box;
+            word-break: break-word;
+        }
+
+        /* СТИЛИ СЕКЦИИ КОНТАКТОВ (КЛАССИКА С СИНХРОННЫМ МОБИЛЬНЫМ ПЕРЕНОСОМ) */
+        footer {
+            border-top: 1px solid var(--vs-border);
+            width: 100%;
+            padding: 40px 0 20px 0;
+            margin-top: 30px;
+            display: flex;
+            justify-content: flex-start;
+            box-sizing: border-box;
+        }
+
+        .footer-object {
+            font-size: 0.95rem;
+            line-height: 2; 
+            width: 100%;
+            max-width: 900px;
+            border-left: 3px solid var(--vs-keyword);
+            padding-left: 20px;
+            box-sizing: border-box;
+        }
+
+        .footer-row {
+            display: flex;
+            flex-flow: row wrap; /* Разрешает перенос элементов, но сохраняет их строчное поведение */
+            align-items: flex-start;
+            margin-bottom: 12px;
+        }
+
+        .footer-key {
+            color: var(--text-color);
+        }
+
+        .footer-colon {
+            margin-right: 8px;
+            color: var(--text-color);
+        }
+
+        .footer-value {
+            color: var(--vs-string);
+            margin-right: 12px;
+            word-break: break-all; 
+        }
+
+        .footer-comma {
+            color: var(--text-color);
+        }
+
+        .footer-link {
+            color: var(--vs-active-green);
+            text-decoration: none;
+            font-weight: bold;
+            transition: color 0.15s;
+            display: inline-block;
+        }
+
+        .footer-link:hover {
+            color: #ffffff;
+        }
+
+        /* Адаптивность для мобильных телефонов */
+        @media (max-width: 768px) {
+            body {
+                padding-top: 75px; 
+                padding-left: 15px;
+                padding-right: 15px;
+            }
+
+            header {
+                margin-bottom: 30px;
+                padding-left: 15px;
+            }
+
+            header h1 {
+                font-size: 1.3rem; 
+            }
+
+            header p.description {
+                font-size: 0.85rem;
+            }
+
+            .portfolio-grid {
+                grid-template-columns: minmax(200px, 280px); 
+                justify-content: center;
+            }
+
+            /* На смартфонах переносим ссылки строго под текст у всех контактов одновременно */
+            .footer-row {
+                display: flex;
+                flex-direction: column;
+                align-items: flex-start;
+                margin-bottom: 12px;
+            }
+
+            .footer-link {
+                font-size: 0.8rem;
+                background: #2d2d2d;
+                padding: 2px 10px;
+                border-radius: 4px;
+                border: 1px solid var(--vs-border);
+                margin-top: 6px;
+                line-height: 1.5;
+            }
+
+            .iframe-wrapper {
+                width: 100%;
+                max-width: 100%;
+                box-sizing: border-box;
+            }
+
+            .ratio-9-16, .ratio-3-4 { width: 100%; max-width: 320px; }
+            .ratio-16-9, .ratio-4-3 { width: 100%; max-width: 100%; }
+        }
+    </style>
+</head>
+<body>
+
+<nav class="navbar">
+    <div class="nav-links">
+        <a href="#home" class="nav-link">main</a>
+        <a href="#contacts" class="nav-link">contacts</a>
+        <a href="assets/cv.pdf" target="_blank" class="nav-link">cv.pdf</a>
+    </div>
+</nav>
+
+<div class="container" id="home">
+    <header>
+        <h1>Anastasiia Grigoreva | Playable Ads Creator</h1>
+        <p class="description">
+            <span class="keyword">stack</span> { <span class="string">CocosCreator</span>, <span class="string">TypeScript</span> }<br>
+            <span class="keyword">plus</span> { <span class="string">Gemini</span>, <span class="string">Claude</span>, <span class="string">Photoshop</span>, <span class="string">After Effects</span>, <span class="string">Blender</span>, <span class="string">Spine</span>, <span class="string">Unity</span>, <span class="string">Figma</span> };<br><br>
+            <span class="comment">// 3D/2D Playable Ads Developer with a focus on full-stack production.</span><br>
+            <span class="comment">// Expert in optimization of assets & responsive design.</span><br>
+            <span class="comment">// Supported networks: Facebook, AppLovin, Unity, Moloco, Mintegral etc.</span>
+        </p>
+    </header>
+
+    <div class="portfolio-grid">
+        
+        <div class="project-card" 
+             onclick="loadPlayable('./assets/playables/TycoonFarm_3D/index.html', 'TycoonFarm_3D.html', this)"
+             data-desc="[INFO] Genre: Idle Tycoon&#10;[ENGINE] Cocos Creator | TypeScript&#10;[LOGIC] Virtual joystick navigation, active physics (BoxCollider), idle-timer tutor&#10;[CTA] Dual-logic end cards (Currency Target vs. Progression Upgrades)&#10;[VISUAL] Mixamo animations, Particle Systems&#10;[LAYOUT] Real-time responsive layout (Portrait / Landscape)&#10;[OPTIMIZATION] Fully compressed assets | Build size &lt; 5 MB&#10;[DEPLOY] MRAID-compliant | Universal build for FB, AppLovin, Unity, Moloco, Mintegral etc.">
+            <div>
+                <h3>TycoonFarm_3D.html</h3>
+                <video autoplay loop muted playsinline width="100%" style="border-radius: 4px; margin-bottom: 5px; background: #000; display: block; aspect-ratio: 1/1; object-fit: cover; border: 1px solid var(--vs-border);">
+                    <source src="./assets/previews/TycoonFarm_3D.mp4" type="video/mp4">
+                </video>
+            </div>
+        </div>
+
+        <div class="project-card" 
+             onclick="loadPlayable('./assets/playables/Match3_2D/index.html', 'Match3_2D.html', this)"
+             data-desc="[INFO] Genre: Match-3 (2D)&#10;[ENGINE] Cocos Creator | TypeScript&#10;[LOGIC] Dynamic grid generation based on screen resolution&#10;[VISUAL] Tween animations, Particle Systems&#10;[LAYOUT] Real-time responsive layout (Portrait / Landscape)&#10;[OPTIMIZATION] Fully compressed assets | Build size &lt; 5 MB&#10;[DEPLOY] MRAID-compliant | Universal build for FB, AppLovin, Unity, Moloco, Mintegral etc.">
+            <div>
+                <h3>Match3_2D.html</h3>
+                <video autoplay loop muted playsinline width="100%" style="border-radius: 4px; margin-bottom: 5px; background: #000; display: block; aspect-ratio: 1/1; object-fit: cover; border: 1px solid var(--vs-border);">
+                    <source src="./assets/previews/Match3_2D.mp4" type="video/mp4">
+                </video>
+            </div>
+        </div>
+
+        <div class="project-card" 
+             onclick="loadPlayable('./assets/playables/HoleIt_3D/index.html', 'HoleIt_3D.html', this)"
+             data-desc="[INFO] Genre: Idle (3D)&#10;[ENGINE] Cocos Creator | TypeScript&#10;[LOGIC] Virtual joystick navigation, idle-timer tutor&#10;[VISUAL] Particle Systems&#10;[LAYOUT] Real-time responsive layout (Portrait / Landscape)&#10;[OPTIMIZATION] Fully compressed assets | Build size &lt; 5 MB&#10;[DEPLOY] MRAID-compliant | Universal build for FB, AppLovin, Unity, Moloco, Mintegral etc.">
+            <div>
+                <h3>HoleIt_3D.html</h3>
+                <video autoplay loop muted playsinline width="100%" style="border-radius: 4px; margin-bottom: 5px; background: #000; display: block; aspect-ratio: 1/1; object-fit: cover; border: 1px solid var(--vs-border);">
+                    <source src="./assets/previews/HoleIt_3D.mp4" type="video/mp4">
+                </video>
+            </div>
+        </div>
+
+        <div class="project-card" 
+             onclick="loadPlayable('./assets/playables/WheelOfFortune_2D/index.html', 'SpinWheel_2D.html', this)"
+             data-desc="[INFO] Genre: iGaming / Casino (2D)&#10;[ENGINE] Cocos Creator | TypeScript&#10;[LOGIC] Wheel of fortune mechanics, idle-timer tutor&#10;[VISUAL] AE-baked character sprite sheet animations&#10;[LAYOUT] Real-time responsive layout (Portrait / Landscape)&#10;[OPTIMIZATION] Fully compressed assets | Build size &lt; 5 MB&#10;[DEPLOY] MRAID-compliant | Universal build for FB, AppLovin, Unity, Moloco, Mintegral etc.">
+            <div>
+                <h3>SpinWheel_2D.html</h3>
+                <video autoplay loop muted playsinline width="100%" style="border-radius: 4px; margin-bottom: 5px; background: #000; display: block; aspect-ratio: 1/1; object-fit: cover; border: 1px solid var(--vs-border);">
+                    <source src="./assets/previews/WheelOfFortune_2D.mp4" type="video/mp4">
+                </video>
+            </div>
+        </div>
+
+    </div>
+
+    <div class="viewer-container" id="viewerSection">
+        <h2 id="currentTitle"></h2>
+        
+        <div class="viewer-controls-wrapper">
+            <div class="viewer-controls">
+                <button class="control-btn active" onclick="resizeViewer('9-16', this)">9:16</button>
+                <button class="control-btn" onclick="resizeViewer('16-9', this)">16:9</button>
+                <button class="control-btn" onclick="resizeViewer('3-4', this)">3:4</button>
+                <button class="control-btn" onclick="resizeViewer('4-3', this)">4:3</button>
+            </div>
+            <div class="viewer-controls">
+                <button class="control-btn action-btn" onclick="restartPlayable()">Restart ↻</button>
+                <button class="control-btn action-btn" onclick="goFullscreen()">Fullscreen ⛶</button>
+                <button class="control-btn action-btn close-btn" onclick="closeViewer()">Close ✕</button>
+            </div>
+        </div>
+
+        <div class="viewer-window">
+            <div class="iframe-wrapper ratio-9-16" id="iframeWrapper" style="position: relative;">
+                
+                <div id="playablePlaceholder" onclick="startPlayableAfterClick()" style="position: absolute; top: 0; left: 0; width: 100%; height: 100%; background: #1a1a1a; display: flex; flex-direction: column; justify-content: center; align-items: center; cursor: pointer; z-index: 10; user-select: none; border-radius: 2px;">
+                    <div style="width: 65px; height: 65px; background: #2d2d2d; border: 2px solid var(--vs-active-green); border-radius: 50%; display: flex; justify-content: center; align-items: center; box-shadow: 0 0 15px rgba(78, 201, 176, 0.3); transition: transform 0.2s, box-shadow 0.2s;">
+                        <div style="width: 0; height: 0; border-top: 12px solid transparent; border-bottom: 12px solid transparent; border-left: 20px solid var(--vs-active-green); margin-left: 6px;"></div>
+                    </div>
+                    <div style="color: #888; font-size: 0.85rem; margin-top: 15px; letter-spacing: 1px;">CLICK TO PLAY</div>
+                </div>
+
+                <iframe id="playableIframe" src="about:blank" sandbox="allow-scripts allow-same-origin" allow="autoplay" scrolling="no"></iframe>
+            </div>
+        </div>
+
+        <div class="console-output" id="currentDescription"></div>
+    </div>
+
+    <footer id="contacts">
+        <div class="footer-object">
+            <div><span class="keyword">const</span> <span class="keyword">developerContacts</span> = {</div>
+            
+            <div class="footer-row">
+                <span style="white-space: nowrap;"><span class="footer-key">telegram</span><span class="footer-colon">:</span><span class="footer-value">"@GringoNnn"</span><span class="footer-comma">,</span></span>
+                <a href="https://t.me/GringoNnn" target="_blank" class="footer-link">link ↗</a>
+            </div>
+
+            <div class="footer-row">
+                <span style="white-space: nowrap;"><span class="footer-key">linkedIn</span><span class="footer-colon">:</span><span class="footer-value">"Anastasiia Grigoreva"</span><span class="footer-comma">,</span></span>
+                <a href="https://www.linkedin.com/in/anastasiia-grigoreva-56a1831a1/" target="_blank" class="footer-link">link ↗</a>
+            </div>
+
+            <div class="footer-row">
+                <span style="white-space: nowrap;"><span class="footer-key">email</span><span class="footer-colon">:</span><span class="footer-value">"gringoalone@gmail.com"</span>,</span>
+                <a href="mailto:gringoalone@gmail.com" class="footer-link">link ↗</a>
+            </div>
+            
+            <div>};</div>
+        </div>
+    </footer>
+</div>
+
+<script>
+    let currentUrl = '';
+
+    function loadPlayable(url, fileName, cardElement) {
+        currentUrl = url;
+        document.getElementById('currentTitle').innerText = 'Preview: ' + fileName;
+        
+        const descText = cardElement.getAttribute('data-desc') || '';
+        document.getElementById('currentDescription').innerText = descText;
+        
+        const iframe = document.getElementById('playableIframe');
+        iframe.src = 'about:blank';
+        
+        const placeholder = document.getElementById('playablePlaceholder');
+        if (placeholder) placeholder.style.display = 'flex';
+        
+        const viewer = document.getElementById('viewerSection');
+        viewer.style.display = 'flex';
+        viewer.scrollIntoView({ behavior: 'smooth' });
+    }
+
+    function startPlayableAfterClick() {
+        const iframe = document.getElementById('playableIframe');
+        const placeholder = document.getElementById('playablePlaceholder');
+        
+        if (iframe && currentUrl) {
+            if (placeholder) placeholder.style.display = 'none';
+            iframe.src = currentUrl;
+        }
+    }
+
+    function resizeViewer(ratio, button) {
+        const wrapper = document.getElementById('iframeWrapper');
+        if (button && button.parentElement) {
+            button.parentElement.querySelectorAll('.control-btn').forEach(btn => btn.classList.remove('active'));
+            button.classList.add('active');
+        }
+
+        wrapper.className = 'iframe-wrapper';
+        
+        if (ratio === '9-16') {
+            wrapper.classList.add('ratio-9-16');
+        } else if (ratio === '16-9') {
+            wrapper.classList.add('ratio-16-9');
+        } else if (ratio === '3-4') {
+            wrapper.classList.add('ratio-3-4');
+        } else if (ratio === '4-3') {
+            wrapper.classList.add('ratio-4-3');
+        }
+    }
+
+    function restartPlayable() {
+        const iframe = document.getElementById('playableIframe');
+        const placeholder = document.getElementById('playablePlaceholder');
+        if (currentUrl) {
+            if (placeholder) placeholder.style.display = 'none';
+            iframe.src = '';
+            setTimeout(() => {
+                iframe.src = currentUrl;
+            }, 50);
+        }
+    }
+
+    function closeViewer() {
+        const iframe = document.getElementById('playableIframe');
+        iframe.src = 'about:blank';
+        
+        const placeholder = document.getElementById('playablePlaceholder');
+        if (placeholder) placeholder.style.display = 'flex';
+        
+        const viewer = document.getElementById('viewerSection');
+        viewer.style.display = 'none';
+        
+        document.getElementById('home').scrollIntoView({ behavior: 'smooth' });
+    }
+
+    function goFullscreen() {
+        const iframe = document.getElementById('playableIframe');
+        if (iframe.requestFullscreen) {
+            iframe.requestFullscreen();
+        } else if (iframe.mozRequestFullScreen) {
+            iframe.mozRequestFullScreen();
+        } else if (iframe.webkitRequestFullscreen) {
+            iframe.webkitRequestFullscreen();
+        } else if (iframe.msRequestFullscreen) {
+            iframe.msRequestFullscreen();
+        }
+    }
+</script>
+
+</body>
+</html>
